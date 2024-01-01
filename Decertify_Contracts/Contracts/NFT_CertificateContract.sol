@@ -29,21 +29,31 @@ contract CertificateNFT is ERC721URIStorage, Users{
     function mintCertificate(
         address _to,
         uint _tokenId,
-        string calldata _uri
+        string calldata _uri,
+        string[12] memory _secretPhrase
     )external {
-        _mint(_to, _tokenId);
-        _setTokenURI(_tokenId, _uri);
-        UpdateMintStatus("Success"); 
+        bool userExists;
+        (userExists) = AuthenticateUser(_to, _secretPhrase);
+        if(userExists == true){
+            _mint(_to, _tokenId);
+            _setTokenURI(_tokenId, _uri);
+            UpdateMintStatus("Success");
+        } 
     }
 
     ///A function created for transfering certificate ownership
     function transferCertificate(
         address _to,
         address _from,
-        uint _tokenId
+        uint _tokenId,
+        string[12] memory _secretPhrase
     )external {
-        approve(_to, _tokenId);
-        safeTransferFrom(_from, _to, _tokenId);
+        bool userExists;
+        (userExists) = AuthenticateUser(_to, _secretPhrase);
+        if(userExists == true){
+            approve(_to, _tokenId);
+            safeTransferFrom(_from, _to, _tokenId);
+        }
     }
 
     ///A function to check an NFT owner

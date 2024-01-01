@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.12 <0.9.0;
-// import "solidity-string-utils/strings.sol";
 
 ///A contract for storing users of an app
 contract Users{
@@ -57,7 +56,7 @@ contract Users{
       group userType,
       string[12] calldata _secretPhrase,
       string calldata _email_address
-      ) external returns (User memory) {
+      ) public returns (User memory) {
 
       uint j = 0;
 
@@ -96,7 +95,7 @@ contract Users{
   }
 
    ///A function that deletes an existing account in the user array using it's index
-    function deleteUser(uint index) external returns (string memory){
+    function deleteUser(uint index) internal returns (string memory){
       require(index < users.length, "This User doesn't exist");
       string memory username = users[index].username;
 
@@ -120,33 +119,50 @@ contract Users{
       }
 
       return username;
+    }
+
+    //A function that checks if the user falls in the NFT issuer category
+    //and is eligible to create NFT collection.
+    function AuthorizeUser(address _userAddress) public view returns (bool){
+        User memory user;
+        for(uint count = 0; count <= users.length; count++){
+            if (users[count].walletAddress == _userAddress){
+                user = users[count];
+                break;
+            }
+        }
+
+        if (user.userGroup == group.NFT_Issuer){
+            return (true);
+        }
+        return(false);
+    }
+    
+    //A function that checks if the user is a registered user
+    function AuthenticateUser(address _userAddress, string[12] memory _secretPhrase) public view returns (bool){
+    User memory user;
+    string[12] memory password;
+
+    for(uint count = 0; count <= users.length; count++){
+      if (users[count].walletAddress == _userAddress){
+        user = users[count];
+        break;
+      }
+    }
+
+    for(uint new_count = 0; new_count < 12; new_count++){
+      password[new_count] = user.secret_phrase.words[new_count];
+    }
+
+    for(uint new_count = 0; new_count < 12; new_count++){
+      if(keccak256(abi.encodePacked(_secretPhrase[new_count])) == keccak256(abi.encodePacked(password[new_count]))){
+        continue;
+      }
+      else{
+        return false;
+      }
+    }
+    return true;
   }
-
-//   function AuthenticateUser(address _userAddress, string[12] memory _secretPhrase) public view returns (bool){
-//     require(_secretPhrase.length == 12, "Number of words incomplete or exceeded");
-//     User memory user;
-//     string[12] memory password;
-
-//     for(uint count = 0; count <= users.length; count++){
-//       if (users[count].walletAddress == _userAddress){
-//         user = users[count];
-//         break;
-//       }
-//     }
-
-//     for(uint new_count = 0; new_count <= 12; new_count++){
-//       password[new_count] = user.secret_phrase.words[new_count];
-//     }
-
-//     for(uint new_count = 0; new_count <= 12; new_count++){
-//       if(strings.equals(_secretPhrase[new_count], password[new_count])){
-//         continue;
-//       }
-//       else{
-//         return false;
-//       }
-//     }
-//     return true;
-//   }
 
 }
